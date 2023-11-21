@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useNavigate, Link } from "react-router-dom";
@@ -15,12 +15,19 @@ export default function Register() {
         draggable: true,
         theme: "dark",
     };
+
     const [values, setValues] = useState({
         username: "",
         email: "",
         password: "",
         confirmPassword: "",
     });
+
+    useEffect(() => {
+        if (localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
+            navigate("/");
+        }
+    }, [navigate]);
 
     const handleChange = (event) => {
         setValues({ ...values, [event.target.name]: event.target.value });
@@ -57,12 +64,21 @@ export default function Register() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (handleValidation()) {
-            const { password, confirmPassword, email, username } = values;
+            const { password, email, username } = values;
             const { data } = await axios.post(registerRoute, {
                 username,
                 email,
                 password
             })
+            if (data.status === false) {
+                toast.error(data?.message, toastOptions);
+            }
+
+            if (data.status === true) {
+                toast.success('Successfully Registered', toastOptions);
+                localStorage.setItem(process.env.REACT_APP_LOCALHOST_KEY, JSON.stringify(data.user));
+                navigate('/login');
+            }
         }
     };
 
